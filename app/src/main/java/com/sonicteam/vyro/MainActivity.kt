@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sonicteam.vyro.data.supabase
 import com.sonicteam.vyro.ui.AuthScreen
-import com.sonicteam.vyro.ui.HomeScreen
+import com.sonicteam.vyro.ui.MainScaffold
 import com.sonicteam.vyro.ui.VyroTheme
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -32,7 +32,7 @@ fun VyroApp() {
     val status by supabase.auth.sessionStatus.collectAsStateWithLifecycle()
     when (status) {
         is SessionStatus.Initializing -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
-        is SessionStatus.Authenticated -> HomeScreen()
+        is SessionStatus.Authenticated -> MainScaffold()
         else -> AuthScreen()
     }
 }
