@@ -2,6 +2,7 @@ package com.sonicteam.vyro.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -39,9 +40,9 @@ fun Avatar(url: String?, name: String, size: Int = 34) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PostCard(p: FeedPost, onLike: () -> Unit, onSave: () -> Unit, onComments: () -> Unit) {
+fun PostCard(p: FeedPost, onLike: () -> Unit, onSave: () -> Unit, onComments: () -> Unit, onProfile: () -> Unit = {}) {
     Column(Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.clickable(onClick = onProfile).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Avatar(p.avatarUrl, p.username)
             Spacer(Modifier.width(10.dp))
             Text(p.username, fontWeight = FontWeight.SemiBold)

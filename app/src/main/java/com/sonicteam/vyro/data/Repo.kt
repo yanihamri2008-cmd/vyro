@@ -50,4 +50,53 @@ object Repo {
             supabase.from("post_media").insert(NewMedia(post.id, url, i))
         }
     }
+
+    // ---- profiles, follow, search ----
+    suspend fun profile(userId: String): ProfileInfo =
+        supabase.postgrest.rpc("get_profile", buildJsonObject { put("p_user", userId) })
+            .decodeList<ProfileInfo>().first()
+
+    suspend fun userPosts(userId: String): List<PostCover> =
+        supabase.from("posts")
+            .select(Columns.raw("id,post_media(url,position)")) {
+                filter { eq("author_id", userId) }
+                order("created_at", Order.DESCENDING)
+            }.decodeList<PostCover>()
+
+    suspend fun searchProfiles(q: String): List<MiniUser> {
+        val me = uid ?: return emptyList()
+        val term = q.trim()
+        return supabase.from("profiles")
+            .select(Columns.raw("id,username,display_name,avatar_url")) {
+                filter {
+                    if (term.isNotEmpty()) ilike("username", "%$term%")
+                    neq("id", me)
+                }
+                order("created_at", Order.DESCENDING)
+                limit(30)
+            }.decodeList<MiniUser>()
+    }
+
+    suspend fun follow(target: String) {
+        val me = uid ?: return
+        supabase.from("follows").insert(NewFollow(me, target))
+    }
+
+    suspend fun unfollow(target: String) {
+        val me = uid ?: return
+        supabase.from("follows").delete { filter { eq("follower_id", me); eq("followee_id", target) } }
+    }
+
+    suspend fun updateProfile(u: ProfileUpdate) {
+        val me = uid ?: return
+        supabase.from("profiles").update(u) { filter { eq("id", me) } }
+    }
+
+    suspend fun uploadAvatar(bytes: ByteArray) {
+        val me = uid ?: return
+        val path = "$me/avatar-${System.currentTimeMillis()}.jpg"
+        supabase.storage.from("avatars").upload(path, bytes)
+        val url = supabase.storage.from("avatars").publicUrl(path)
+        supabase.from("profiles").update({ set("avatar_url", url) }) { filter { eq("id", me) } }
+    }
 }

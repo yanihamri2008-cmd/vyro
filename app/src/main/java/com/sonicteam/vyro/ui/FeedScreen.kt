@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.sonicteam.vyro.data.FeedPost
 
 @Composable
-fun FeedScreen(vm: FeedViewModel) {
+fun FeedScreen(vm: FeedViewModel, onProfile: (String) -> Unit = {}) {
     var commentsFor by remember { mutableStateOf<FeedPost?>(null) }
     Box(Modifier.fillMaxSize()) {
         when {
@@ -34,7 +34,7 @@ fun FeedScreen(vm: FeedViewModel) {
                     }
                 }
                 items(vm.posts, key = { it.id }) { p ->
-                    PostCard(p, { vm.toggleLike(p) }, { vm.toggleSave(p) }, { commentsFor = p })
+                    PostCard(p, { vm.toggleLike(p) }, { vm.toggleSave(p) }, { commentsFor = p }, { onProfile(p.authorId) })
                 }
             }
         }

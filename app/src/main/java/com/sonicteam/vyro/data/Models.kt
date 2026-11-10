@@ -32,3 +32,28 @@ data class CommentRow(
     val profiles: MiniProfile? = null
 )
 @Serializable data class NewComment(@SerialName("post_id") val postId: String, @SerialName("author_id") val authorId: String, val body: String)
+
+@Serializable
+data class ProfileInfo(
+    val id: String,
+    val username: String,
+    @SerialName("display_name") val displayName: String? = null,
+    val bio: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("is_private") val isPrivate: Boolean = false,
+    @SerialName("posts_count") val postsCount: Long = 0,
+    @SerialName("followers_count") val followersCount: Long = 0,
+    @SerialName("following_count") val followingCount: Long = 0,
+    @SerialName("follow_status") val followStatus: String? = null
+)
+@Serializable data class MiniUser(val id: String, val username: String, @SerialName("display_name") val displayName: String? = null, @SerialName("avatar_url") val avatarUrl: String? = null)
+@Serializable data class MediaUrl(val url: String, val position: Int = 0)
+@Serializable data class PostCover(val id: String, @SerialName("post_media") val media: List<MediaUrl> = emptyList())
+@Serializable data class NewFollow(@SerialName("follower_id") val followerId: String, @SerialName("followee_id") val followeeId: String)
+@Serializable
+data class ProfileUpdate(
+    @SerialName("display_name") val displayName: String,
+    val bio: String,
+    val username: String,
+    @SerialName("is_private") val isPrivate: Boolean
+)
