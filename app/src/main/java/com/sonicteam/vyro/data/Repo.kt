@@ -171,6 +171,7 @@ object Repo {
     suspend fun adminDeleteContent(type: String, id: String) {
         if (type == "post") supabase.postgrest.rpc("admin_delete_post", buildJsonObject { put("p_post", id) })
         else if (type == "comment") supabase.postgrest.rpc("admin_delete_comment", buildJsonObject { put("p_comment", id) })
+        else if (type == "reel") supabase.postgrest.rpc("admin_delete_reel", buildJsonObject { put("p_reel", id) })
     }
 
     suspend fun adminResolve(report: String, status: String) {
@@ -199,4 +200,45 @@ object Repo {
     suspend fun adminDaily(): List<AdminDaily> = supabase.postgrest.rpc("admin_daily").decodeList<AdminDaily>()
     suspend fun adminOnline(): List<OnlineUser> = supabase.postgrest.rpc("admin_online").decodeList<OnlineUser>()
     suspend fun adminAudit(): List<AuditRow> = supabase.postgrest.rpc("admin_audit").decodeList<AuditRow>()
+
+    // ---- reels ----
+    suspend fun reels(): List<ReelItem> =
+        supabase.postgrest.rpc("get_reels", buildJsonObject { put("page_size", 20) }).decodeList<ReelItem>()
+
+    suspend fun setReelLiked(reelId: String, on: Boolean) {
+        val u = uid ?: return
+        if (on) supabase.from("reel_likes").insert(NewReelLike(u, reelId))
+        else supabase.from("reel_likes").delete { filter { eq("user_id", u); eq("reel_id", reelId) } }
+    }
+
+    suspend fun reelComments(reelId: String): List<CommentRow> =
+        supabase.from("reel_comments")
+            .select(Columns.raw("id,body,author_id,created_at,profiles(username,avatar_url)")) {
+                filter { eq("reel_id", reelId) }
+                order("created_at", Order.ASCENDING)
+            }.decodeList<CommentRow>()
+
+    suspend fun addReelComment(reelId: String, body: String) {
+        val u = uid ?: return
+        supabase.from("reel_comments").insert(NewReelComment(reelId, u, body))
+    }
+
+    suspend fun deleteReel(reelId: String) {
+        supabase.from("reels").delete { filter { eq("id", reelId) } }
+    }
+
+    suspend fun createReel(video: ByteArray, thumb: ByteArray?, caption: String, durationMs: Long) {
+        val u = uid ?: error("غير مسجّل الدخول")
+        val id = java.util.UUID.randomUUID().toString()
+        val vPath = "$u/$id.mp4"
+        supabase.storage.from("reels").upload(vPath, video)
+        val vUrl = supabase.storage.from("reels").publicUrl(vPath)
+        var tUrl: String? = null
+        if (thumb != null) {
+            val tPath = "$u/$id.jpg"
+            supabase.storage.from("reels").upload(tPath, thumb)
+            tUrl = supabase.storage.from("reels").publicUrl(tPath)
+        }
+        supabase.from("reels").insert(NewReel(id, u, vUrl, tUrl, caption, durationMs.toInt()))
+    }
 }

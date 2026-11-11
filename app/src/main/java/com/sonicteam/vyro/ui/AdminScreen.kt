@@ -62,7 +62,7 @@ private fun MiniBars(title: String, values: List<Long>, labels: List<String>, co
 }
 
 private fun actionAr(a: String) = when (a) {
-    "ban" -> "حظر"; "unban" -> "رفع حظر"; "delete_post" -> "حذف منشور"; "delete_comment" -> "حذف تعليق"; else -> a
+    "ban" -> "حظر"; "unban" -> "رفع حظر"; "delete_post" -> "حذف منشور"; "delete_comment" -> "حذف تعليق"; "delete_reel" -> "حذف ريل"; else -> a
 }
 
 @Composable
@@ -176,7 +176,7 @@ fun AdminScreen(onBack: () -> Unit) {
                     items(reports, key = { it.id }) { r ->
                         Card(Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(12.dp)) {
-                                val kind = when (r.targetType) { "post" -> "منشور"; "comment" -> "تعليق"; else -> "حساب" }
+                                val kind = when (r.targetType) { "post" -> "منشور"; "comment" -> "تعليق"; "reel" -> "ريل"; else -> "حساب" }
                                 Text("$kind • السبب: ${r.reason ?: "-"}", style = MaterialTheme.typography.titleSmall)
                                 Text("المبلّغ: @${r.reporter ?: "?"}   صاحب المحتوى: @${r.targetUsername ?: "?"}", fontSize = 12.sp, color = muted)
                                 if (!r.preview.isNullOrBlank()) Text(r.preview, Modifier.padding(top = 6.dp), fontSize = 14.sp)

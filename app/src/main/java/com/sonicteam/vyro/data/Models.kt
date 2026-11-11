@@ -130,3 +130,29 @@ data class AdminStats(
 @Serializable data class AdminDaily(val day: String, @SerialName("n_signups") val signups: Long = 0, @SerialName("n_posts") val posts: Long = 0, @SerialName("n_active") val active: Long = 0)
 @Serializable data class OnlineUser(val id: String, val username: String, @SerialName("last_seen") val lastSeen: String? = null)
 @Serializable data class AuditRow(@SerialName("created_at") val createdAt: String, @SerialName("admin_name") val adminName: String? = null, val action: String, @SerialName("target_name") val targetName: String? = null, val note: String? = null)
+
+@Serializable
+data class ReelItem(
+    val id: String,
+    @SerialName("author_id") val authorId: String,
+    val username: String,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("video_url") val videoUrl: String,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    val caption: String? = null,
+    @SerialName("created_at") val createdAt: String,
+    @SerialName("like_count") val likeCount: Long = 0,
+    @SerialName("comment_count") val commentCount: Long = 0,
+    val liked: Boolean = false
+)
+@Serializable
+data class NewReel(
+    val id: String,
+    @SerialName("author_id") val authorId: String,
+    @SerialName("video_url") val videoUrl: String,
+    @SerialName("thumb_url") val thumbUrl: String? = null,
+    val caption: String,
+    @SerialName("duration_ms") val durationMs: Int
+)
+@Serializable data class NewReelLike(@SerialName("user_id") val userId: String, @SerialName("reel_id") val reelId: String)
+@Serializable data class NewReelComment(@SerialName("reel_id") val reelId: String, @SerialName("author_id") val authorId: String, val body: String)

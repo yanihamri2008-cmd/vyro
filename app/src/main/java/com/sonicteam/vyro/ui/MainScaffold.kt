@@ -56,6 +56,7 @@ private sealed interface Screen {
     data object Admin : Screen
     data object Create : Screen
     data object Alerts : Screen
+    data object CreateReel : Screen
     data class Chat(val id: String, val title: String, val group: Boolean) : Screen
 }
 
@@ -98,6 +99,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
     var editing by remember { mutableStateOf(false) }
     var screen by remember { mutableStateOf<Screen>(Screen.None) }
     var profileKey by remember { mutableIntStateOf(0) }
+    var reelsKey by remember { mutableIntStateOf(0) }
     var ban by remember { mutableStateOf<BanInfo?>(null) }
     var isAdmin by remember { mutableStateOf(false) }
     var myAvatar by remember { mutableStateOf<String?>(null) }
@@ -177,6 +179,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                 s is Screen.Admin -> AdminScreen(onBack = { screen = Screen.None })
                 s is Screen.Create -> CreatePostScreen(onDone = { feedVm.load(); profileKey++; screen = Screen.None; tab = NavTab.Home })
                 s is Screen.Alerts -> NotificationsScreen(onBack = { screen = Screen.None })
+                s is Screen.CreateReel -> CreateReelScreen(onDone = { screen = Screen.None; tab = NavTab.Reels; reelsKey++ })
                 openProfile != null -> ProfileScreen(
                     userId = openProfile!!, refreshKey = profileKey,
                     onBack = { openProfile = null },
@@ -193,7 +196,8 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                     FeedScreen(feedVm, onProfile = { openProfile = it }, onNotice = notice,
                         header = { StoryTray(myAvatar, myName) { notice("القصص قريباً") } })
                 }
-                tab == NavTab.Reels -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text("الريلز قريباً") }
+                tab == NavTab.Reels -> ReelsScreen(reloadKey = reelsKey, onAdd = { screen = Screen.CreateReel },
+                    onProfile = { openProfile = it }, onNotice = notice)
                 tab == NavTab.Messages -> InboxScreen(
                     onOpen = { c -> screen = Screen.Chat(c.id, c.title ?: c.peerUsername ?: "محادثة", c.kind == "group") },
                     onNew = { screen = Screen.NewChat }, onNewGroup = { screen = Screen.NewGroup })
