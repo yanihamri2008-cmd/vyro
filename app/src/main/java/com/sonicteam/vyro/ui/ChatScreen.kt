@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,12 +38,12 @@ fun ChatScreen(id: String, title: String, group: Boolean, onBack: () -> Unit) {
     suspend fun reload() {
         try { msgs = Repo.messages(id); Repo.markRead(id); err = null }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { err = e.message }
+        catch (e: Exception) { err = e.friendly() }
     }
     LaunchedEffect(id) { reload() }
     OnNewMessage(id) { scope.launch { reload() } }
     LaunchedEffect(showMembers) {
-        if (showMembers) try { members = Repo.members(id) } catch (e: Exception) { err = e.message }
+        if (showMembers) try { members = Repo.members(id) } catch (e: Exception) { err = e.friendly() }
     }
 
     Column(Modifier.fillMaxSize().imePadding()) {
@@ -72,7 +74,7 @@ fun ChatScreen(id: String, title: String, group: Boolean, onBack: () -> Unit) {
                 val body = text.trim()
                 scope.launch {
                     try { Repo.sendMessage(id, body); text = ""; reload() }
-                    catch (e: Exception) { err = e.message }
+                    catch (e: Exception) { err = e.friendly() }
                 }
             }) { Icon(Icons.AutoMirrored.Filled.Send, "إرسال", tint = MaterialTheme.colorScheme.primary) }
         }
@@ -95,7 +97,7 @@ fun ChatScreen(id: String, title: String, group: Boolean, onBack: () -> Unit) {
             TextButton({
                 scope.launch {
                     try { Repo.leaveConversation(id); showMembers = false; onBack() }
-                    catch (e: Exception) { err = e.message }
+                    catch (e: Exception) { err = e.friendly() }
                 }
             }) { Text("مغادرة القروب", color = Color(0xFFFF6B8A)) }
         }

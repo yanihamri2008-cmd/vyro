@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +32,7 @@ fun InboxScreen(onOpen: (InboxItem) -> Unit, onNew: () -> Unit, onNewGroup: () -
     suspend fun load() {
         try { items = Repo.inbox(); err = null }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { err = e.message }
+        catch (e: Exception) { err = e.friendly() }
         loading = false
     }
     LaunchedEffect(Unit) { load() }

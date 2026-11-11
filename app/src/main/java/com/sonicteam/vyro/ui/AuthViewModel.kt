@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,7 +24,7 @@ class AuthViewModel : ViewModel() {
     private fun launchAuth(block: suspend () -> Unit) {
         viewModelScope.launch {
             loading = true; error = null; info = null
-            try { block() } catch (e: Exception) { error = e.message ?: "حدث خطأ غير متوقع" }
+            try { block() } catch (e: Exception) { error = e.friendly() ?: "حدث خطأ غير متوقع" }
             loading = false
         }
     }

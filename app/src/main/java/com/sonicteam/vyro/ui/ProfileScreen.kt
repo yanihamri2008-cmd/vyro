@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material.icons.Icons
@@ -41,7 +43,7 @@ fun ProfileScreen(
     LaunchedEffect(userId, refreshKey, tick) {
         try { info = Repo.profile(userId); posts = Repo.userPosts(userId); err = null }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { err = e.message ?: "تعذّر تحميل الملف" }
+        catch (e: Exception) { err = e.friendly() ?: "تعذّر تحميل الملف" }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -89,7 +91,7 @@ fun ProfileScreen(
                         val act: () -> Unit = {
                             scope.launch {
                                 try { if (p.followStatus == null) Repo.follow(p.id) else Repo.unfollow(p.id); tick++ }
-                                catch (e: Exception) { err = e.message }
+                                catch (e: Exception) { err = e.friendly() }
                             }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -174,7 +176,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                     onMessage = { id, name ->
                         scope.launch {
                             try { val cid = Repo.startDm(id); openProfile = null; screen = Screen.Chat(cid, name, false) }
-                            catch (e: Exception) { notice(e.message ?: "تعذّر بدء المحادثة") }
+                            catch (e: Exception) { notice(e.friendly() ?: "تعذّر بدء المحادثة") }
                         }
                     },
                     onAdmin = adminAction)

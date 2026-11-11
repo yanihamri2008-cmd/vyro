@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,7 +21,7 @@ class FeedViewModel : ViewModel() {
     fun load() {
         viewModelScope.launch {
             loading = true; error = null
-            try { posts = Repo.feed() } catch (e: Exception) { error = e.message ?: "تعذّر تحميل الخلاصة" }
+            try { posts = Repo.feed() } catch (e: Exception) { error = e.friendly() ?: "تعذّر تحميل الخلاصة" }
             loading = false
         }
     }

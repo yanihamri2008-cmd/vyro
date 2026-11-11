@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +28,7 @@ fun ExploreScreen(onOpen: (String) -> Unit) {
         delay(300)
         try { users = Repo.searchProfiles(q); err = null }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { err = e.message }
+        catch (e: Exception) { err = e.friendly() }
     }
 
     Column(Modifier.fillMaxSize().padding(12.dp)) {

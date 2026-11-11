@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -48,7 +50,7 @@ fun EditProfileScreen(onDone: () -> Unit, onCancel: () -> Unit) {
         try {
             val p = Repo.profile(Repo.uid ?: return@LaunchedEffect)
             info = p; name = p.displayName ?: ""; user = p.username; bio = p.bio ?: ""; priv = p.isPrivate
-        } catch (e: Exception) { err = e.message }
+        } catch (e: Exception) { err = e.friendly() }
     }
     val p = info
     if (p == null) { Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }; return }
@@ -88,7 +90,7 @@ fun EditProfileScreen(onDone: () -> Unit, onCancel: () -> Unit) {
                         Repo.updateProfile(ProfileUpdate(name.trim(), bio.trim(), user, priv))
                         onDone()
                     } catch (e: Exception) {
-                        val m = e.message ?: ""
+                        val m = e.friendly() ?: ""
                         err = if (m.contains("duplicate", true) || m.contains("unique", true)) "اسم المستخدم مستخدم، اختر غيره" else m.ifBlank { "فشل الحفظ" }
                     }
                     busy = false

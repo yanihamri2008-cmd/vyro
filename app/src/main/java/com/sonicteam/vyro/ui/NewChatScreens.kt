@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +32,7 @@ private fun UserSearch(
         delay(300)
         try { users = Repo.searchProfiles(q); err = null }
         catch (e: CancellationException) { throw e }
-        catch (e: Exception) { err = e.message }
+        catch (e: Exception) { err = e.friendly() }
     }
     Column(modifier) {
         OutlinedTextField(q, { q = it }, Modifier.fillMaxWidth(), placeholder = { Text("ابحث عن مستخدم") }, singleLine = true)
@@ -60,7 +62,7 @@ fun NewChatScreen(onStarted: (id: String, name: String) -> Unit, onBack: () -> U
         err?.let { Text(it, color = Color(0xFFFF6B8A), fontSize = 12.sp) }
         UserSearch(onTap = { u ->
             scope.launch {
-                try { onStarted(Repo.startDm(u.id), u.username) } catch (e: Exception) { err = e.message }
+                try { onStarted(Repo.startDm(u.id), u.username) } catch (e: Exception) { err = e.friendly() }
             }
         })
     }
@@ -94,7 +96,7 @@ fun NewGroupScreen(onCreated: (id: String, title: String) -> Unit, onBack: () ->
                 scope.launch {
                     busy = true; err = null
                     try { onCreated(Repo.createGroup(title.trim(), picked.keys.toList()), title.trim()) }
-                    catch (e: Exception) { err = e.message }
+                    catch (e: Exception) { err = e.friendly() }
                     busy = false
                 }
             }

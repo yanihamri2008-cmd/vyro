@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +29,7 @@ fun CommentsSheet(post: FeedPost, onDismiss: () -> Unit, onAdded: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     suspend fun reload() {
-        try { list = Repo.comments(post.id); err = null } catch (e: Exception) { err = e.message }
+        try { list = Repo.comments(post.id); err = null } catch (e: Exception) { err = e.friendly() }
         busy = false
     }
     LaunchedEffect(post.id) { reload() }
@@ -59,7 +61,7 @@ fun CommentsSheet(post: FeedPost, onDismiss: () -> Unit, onAdded: () -> Unit) {
                     val body = text.trim()
                     scope.launch {
                         try { Repo.addComment(post.id, body); text = ""; onAdded(); reload() }
-                        catch (e: Exception) { err = e.message }
+                        catch (e: Exception) { err = e.friendly() }
                     }
                 }) { Icon(Icons.AutoMirrored.Filled.Send, "إرسال", tint = MaterialTheme.colorScheme.primary) }
             }

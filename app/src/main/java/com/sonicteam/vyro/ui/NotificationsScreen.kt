@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,7 +24,7 @@ fun NotificationsScreen(onBack: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        try { items = Repo.notifications(); Repo.markNotificationsRead() } catch (e: Exception) { err = e.message }
+        try { items = Repo.notifications(); Repo.markNotificationsRead() } catch (e: Exception) { err = e.friendly() }
         loading = false
     }
     Column(Modifier.fillMaxSize()) {

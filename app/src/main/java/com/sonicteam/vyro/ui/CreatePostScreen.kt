@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -59,7 +61,7 @@ fun CreatePostScreen(onDone: () -> Unit) {
                         Repo.createPost(caption.trim(), bytes)
                         images = emptyList(); caption = ""
                         onDone()
-                    } catch (e: Exception) { err = e.message ?: "فشل النشر" }
+                    } catch (e: Exception) { err = e.friendly() ?: "فشل النشر" }
                     busy = false
                 }
             }

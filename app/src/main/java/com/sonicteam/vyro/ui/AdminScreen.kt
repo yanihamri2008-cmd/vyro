@@ -1,5 +1,7 @@
 package com.sonicteam.vyro.ui
 
+import com.sonicteam.vyro.data.friendly
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,17 +36,17 @@ fun AdminScreen(onBack: () -> Unit) {
 
     LaunchedEffect(tab, tick) {
         if (tab == 0) try { reports = Repo.adminReports(); err = null }
-        catch (e: CancellationException) { throw e } catch (e: Exception) { err = e.message }
+        catch (e: CancellationException) { throw e } catch (e: Exception) { err = e.friendly() }
     }
     LaunchedEffect(tab, q, tick) {
         if (tab == 1) {
             delay(300)
             try { users = Repo.adminUsers(q); err = null }
-            catch (e: CancellationException) { throw e } catch (e: Exception) { err = e.message }
+            catch (e: CancellationException) { throw e } catch (e: Exception) { err = e.friendly() }
         }
     }
     fun act(block: suspend () -> Unit) {
-        scope.launch { try { block(); tick++ } catch (e: Exception) { err = e.message } }
+        scope.launch { try { block(); tick++ } catch (e: Exception) { err = e.friendly() } }
     }
 
     Column(Modifier.fillMaxSize()) {
