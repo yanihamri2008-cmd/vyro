@@ -3,9 +3,6 @@ package com.sonicteam.vyro.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,34 +19,26 @@ private val reportReasons = listOf("محتوى مسيء", "احتيال أو ب�
 fun FeedScreen(
     vm: FeedViewModel,
     onProfile: (String) -> Unit = {},
-    onInbox: () -> Unit = {},
-    onNotice: (String) -> Unit = {}
+    onNotice: (String) -> Unit = {},
+    header: @Composable () -> Unit = {}
 ) {
     var commentsFor by remember { mutableStateOf<FeedPost?>(null) }
     var reportFor by remember { mutableStateOf<FeedPost?>(null) }
     val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxSize()) {
-        when {
-            vm.error != null && vm.posts.isEmpty() -> Column(
-                Modifier.fillMaxSize().padding(24.dp), Arrangement.Center, Alignment.CenterHorizontally
-            ) {
-                Text(vm.error ?: "", color = Color(0xFFFF6B8A))
-                TextButton({ vm.load() }) { Text("إعادة المحاولة") }
-            }
-            vm.posts.isEmpty() && !vm.loading -> Box(Modifier.fillMaxSize().padding(24.dp), Alignment.Center) {
-                Text("لا توجد منشورات بعد. انشر أول منشور أو تابع أشخاصاً.")
-            }
-            else -> LazyColumn(Modifier.fillMaxSize()) {
-                item {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
-                        IconButton(onInbox) { Icon(Icons.Filled.Email, "الرسائل") }
-                        IconButton({ vm.load() }) { Icon(Icons.Filled.Refresh, "تحديث") }
-                    }
+        LazyColumn(Modifier.fillMaxSize()) {
+            item { header() }
+            if (vm.error != null && vm.posts.isEmpty()) item {
+                Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(vm.error ?: "", color = Color(0xFFFF6B8A))
+                    TextButton({ vm.load() }) { Text("إعادة المحاولة") }
                 }
-                items(vm.posts, key = { it.id }) { p ->
-                    PostCard(p, { vm.toggleLike(p) }, { vm.toggleSave(p) }, { commentsFor = p },
-                        { onProfile(p.authorId) }, { reportFor = p })
-                }
+            } else if (vm.posts.isEmpty() && !vm.loading) item {
+                Text("لا توجد منشورات بعد. انشر أول منشور أو تابع أشخاصاً.", Modifier.padding(24.dp))
+            }
+            items(vm.posts, key = { it.id }) { p ->
+                PostCard(p, { vm.toggleLike(p) }, { vm.toggleSave(p) }, { commentsFor = p },
+                    { onProfile(p.authorId) }, { reportFor = p })
             }
         }
         if (vm.loading) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))

@@ -28,7 +28,8 @@ fun ProfileScreen(
     onEdit: () -> Unit = {},
     onSignOut: (() -> Unit)? = null,
     onMessage: ((String, String) -> Unit)? = null,
-    onAdmin: (() -> Unit)? = null
+    onAdmin: (() -> Unit)? = null,
+    onSecurity: (() -> Unit)? = null
 ) {
     var info by remember { mutableStateOf<ProfileInfo?>(null) }
     var posts by remember { mutableStateOf<List<PostCover>>(emptyList()) }
@@ -73,6 +74,10 @@ fun ProfileScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(onEdit, Modifier.weight(1f)) { Text("تعديل الملف") }
                             if (onSignOut != null) OutlinedButton(onSignOut, Modifier.weight(1f)) { Text("تسجيل الخروج") }
+                        }
+                        if (onSecurity != null) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(onSecurity, Modifier.fillMaxWidth()) { Text("تغيير كلمة السر") }
                         }
                         if (onAdmin != null) {
                             Spacer(Modifier.height(8.dp))

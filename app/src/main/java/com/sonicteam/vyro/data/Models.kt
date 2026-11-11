@@ -95,3 +95,12 @@ data class AdminReport(
     @SerialName("created_at") val createdAt: String
 )
 @Serializable data class AdminUser(val id: String, val username: String, @SerialName("display_name") val displayName: String? = null, val banned: Boolean = false)
+
+@Serializable
+data class NotifRow(
+    val id: String, val type: String,
+    @SerialName("post_id") val postId: String? = null,
+    val read: Boolean = false,
+    @SerialName("created_at") val createdAt: String,
+    val actor: MiniProfile? = null
+)

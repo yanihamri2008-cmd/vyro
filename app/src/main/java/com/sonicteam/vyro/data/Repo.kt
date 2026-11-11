@@ -176,4 +176,20 @@ object Repo {
     suspend fun adminResolve(report: String, status: String) {
         supabase.postgrest.rpc("admin_resolve_report", buildJsonObject { put("p_report", report); put("p_status", status) })
     }
+
+    // ---- notifications ----
+    suspend fun notifications(): List<NotifRow> {
+        val me = uid ?: return emptyList()
+        return supabase.from("notifications")
+            .select(Columns.raw("id,type,post_id,read,created_at,actor:profiles!actor_id(username,avatar_url)")) {
+                filter { eq("user_id", me) }
+                order("created_at", Order.DESCENDING)
+                limit(50)
+            }.decodeList<NotifRow>()
+    }
+
+    suspend fun markNotificationsRead() {
+        val me = uid ?: return
+        supabase.from("notifications").update({ set("read", true) }) { filter { eq("user_id", me); eq("read", false) } }
+    }
 }

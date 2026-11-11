@@ -21,7 +21,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @Composable
-fun InboxScreen(onOpen: (InboxItem) -> Unit, onNew: () -> Unit, onNewGroup: () -> Unit, onBack: () -> Unit) {
+fun InboxScreen(onOpen: (InboxItem) -> Unit, onNew: () -> Unit, onNewGroup: () -> Unit, onBack: (() -> Unit)? = null) {
     var items by remember { mutableStateOf<List<InboxItem>>(emptyList()) }
     var err by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -38,7 +38,7 @@ fun InboxScreen(onOpen: (InboxItem) -> Unit, onNew: () -> Unit, onNewGroup: () -
 
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع") }
+            if (onBack != null) IconButton(onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع") }
             Text("الرسائل", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             TextButton(onNew) { Text("محادثة") }
             TextButton(onNewGroup) { Text("قروب") }

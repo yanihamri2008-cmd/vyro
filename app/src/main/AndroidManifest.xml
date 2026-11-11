@@ -4,7 +4,7 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="VYRO"
+        android:label="الآلة الحاسبة"
         android:supportsRtl="true"
         android:theme="@style/Theme.Vyro">
         <activity android:name=".MainActivity" android:exported="true">

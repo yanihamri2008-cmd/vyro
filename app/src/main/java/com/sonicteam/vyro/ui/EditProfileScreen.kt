@@ -19,6 +19,7 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import com.sonicteam.vyro.data.Gate
 import com.sonicteam.vyro.data.ProfileInfo
 import com.sonicteam.vyro.data.ProfileUpdate
 import com.sonicteam.vyro.data.Repo
@@ -41,7 +42,7 @@ fun EditProfileScreen(onDone: () -> Unit, onCancel: () -> Unit) {
     var newAvatar by remember { mutableStateOf<Uri?>(null) }
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { if (it != null) newAvatar = it }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { Gate.pickerOpen = false; if (it != null) newAvatar = it }
 
     LaunchedEffect(Unit) {
         try {
@@ -56,7 +57,7 @@ fun EditProfileScreen(onDone: () -> Unit, onCancel: () -> Unit) {
         Text("تعديل الملف الشخصي", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(16.dp))
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val pick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+            val pick = { Gate.pickerOpen = true; picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
             if (newAvatar != null) AsyncImage(newAvatar, null, Modifier.size(96.dp).clip(CircleShape).clickable { pick() }, contentScale = ContentScale.Crop)
             else Box(Modifier.clickable { pick() }) { Avatar(p.avatarUrl, p.username, 96) }
             TextButton(pick) { Text("تغيير الصورة") }

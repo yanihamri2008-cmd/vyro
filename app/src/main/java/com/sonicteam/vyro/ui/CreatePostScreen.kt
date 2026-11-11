@@ -15,6 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.sonicteam.vyro.data.Gate
 import com.sonicteam.vyro.data.Repo
 import com.sonicteam.vyro.data.compressImage
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +30,12 @@ fun CreatePostScreen(onDone: () -> Unit) {
     var caption by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { images = it }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { Gate.pickerOpen = false; images = it }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("منشور جديد", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
-        OutlinedButton({ picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+        OutlinedButton({ Gate.pickerOpen = true; picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
             Text(if (images.isEmpty()) "اختر صوراً (حتى 10)" else "تغيير الصور (${images.size})")
         }
         if (images.isNotEmpty()) {
