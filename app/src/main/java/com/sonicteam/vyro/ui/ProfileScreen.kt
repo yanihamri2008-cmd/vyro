@@ -26,7 +26,9 @@ fun ProfileScreen(
     refreshKey: Int = 0,
     onBack: (() -> Unit)? = null,
     onEdit: () -> Unit = {},
-    onSignOut: (() -> Unit)? = null
+    onSignOut: (() -> Unit)? = null,
+    onMessage: ((String, String) -> Unit)? = null,
+    onAdmin: (() -> Unit)? = null
 ) {
     var info by remember { mutableStateOf<ProfileInfo?>(null) }
     var posts by remember { mutableStateOf<List<PostCover>>(emptyList()) }
@@ -72,6 +74,10 @@ fun ProfileScreen(
                             OutlinedButton(onEdit, Modifier.weight(1f)) { Text("تعديل الملف") }
                             if (onSignOut != null) OutlinedButton(onSignOut, Modifier.weight(1f)) { Text("تسجيل الخروج") }
                         }
+                        if (onAdmin != null) {
+                            Spacer(Modifier.height(8.dp))
+                            Button(onAdmin, Modifier.fillMaxWidth()) { Text("لوحة الإدارة") }
+                        }
                     } else {
                         val label = when (p.followStatus) { "accepted" -> "إلغاء المتابعة"; "pending" -> "تم إرسال الطلب"; else -> "متابعة" }
                         val filled = p.followStatus == null
@@ -81,8 +87,11 @@ fun ProfileScreen(
                                 catch (e: Exception) { err = e.message }
                             }
                         }
-                        if (filled) Button(act, Modifier.fillMaxWidth()) { Text(label) }
-                        else OutlinedButton(act, Modifier.fillMaxWidth()) { Text(label) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (filled) Button(act, Modifier.weight(1f)) { Text(label) }
+                            else OutlinedButton(act, Modifier.weight(1f)) { Text(label) }
+                            if (onMessage != null) OutlinedButton({ onMessage(p.id, p.username) }, Modifier.weight(1f)) { Text("رسالة") }
+                        }
                     }
                     err?.let { Text(it, color = Color(0xFFFF6B8A), fontSize = 12.sp) }
                 }

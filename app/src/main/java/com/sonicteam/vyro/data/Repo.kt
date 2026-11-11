@@ -6,6 +6,8 @@ import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.storage
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -98,5 +100,80 @@ object Repo {
         supabase.storage.from("avatars").upload(path, bytes)
         val url = supabase.storage.from("avatars").publicUrl(path)
         supabase.from("profiles").update({ set("avatar_url", url) }) { filter { eq("id", me) } }
+    }
+
+    // ---- messaging ----
+    suspend fun inbox(): List<InboxItem> = supabase.postgrest.rpc("get_inbox").decodeList<InboxItem>()
+
+    suspend fun startDm(other: String): String =
+        supabase.postgrest.rpc("start_dm", buildJsonObject { put("other", other) }).decodeAs<String>()
+
+    suspend fun createGroup(title: String, members: List<String>): String =
+        supabase.postgrest.rpc("create_group", buildJsonObject {
+            put("p_title", title)
+            put("p_members", JsonArray(members.map { JsonPrimitive(it) }))
+        }).decodeAs<String>()
+
+    suspend fun messages(cid: String): List<MessageRow> =
+        supabase.from("messages")
+            .select(Columns.raw("id,conversation_id,sender_id,body,created_at,deleted,profiles(username,avatar_url)")) {
+                filter { eq("conversation_id", cid) }
+                order("created_at", Order.DESCENDING)
+                limit(60)
+            }.decodeList<MessageRow>()
+
+    suspend fun sendMessage(cid: String, body: String) {
+        val u = uid ?: return
+        supabase.from("messages").insert(NewMessage(cid, u, body))
+    }
+
+    suspend fun markRead(cid: String) {
+        supabase.postgrest.rpc("mark_read", buildJsonObject { put("p_cid", cid) })
+    }
+
+    suspend fun members(cid: String): List<MemberRow> =
+        supabase.from("conversation_members")
+            .select(Columns.raw("user_id,role,profiles(username,avatar_url)")) {
+                filter { eq("conversation_id", cid) }
+            }.decodeList<MemberRow>()
+
+    suspend fun leaveConversation(cid: String) {
+        val u = uid ?: return
+        supabase.from("conversation_members").delete { filter { eq("conversation_id", cid); eq("user_id", u) } }
+    }
+
+    // ---- reports, bans, admin ----
+    suspend fun report(type: String, targetId: String, reason: String) {
+        val u = uid ?: return
+        supabase.from("reports").insert(NewReport(u, type, targetId, reason))
+    }
+
+    suspend fun amIAdmin(): Boolean = supabase.postgrest.rpc("am_i_admin").decodeAs<Boolean>()
+
+    suspend fun myBan(): BanInfo? = supabase.postgrest.rpc("my_ban").decodeList<BanInfo>().firstOrNull()
+
+    suspend fun adminReports(): List<AdminReport> = supabase.postgrest.rpc("admin_reports").decodeList<AdminReport>()
+
+    suspend fun adminUsers(q: String): List<AdminUser> =
+        supabase.postgrest.rpc("admin_users", buildJsonObject { put("q", q) }).decodeList<AdminUser>()
+
+    suspend fun adminBan(user: String, reason: String, days: Int?) {
+        supabase.postgrest.rpc("admin_ban", buildJsonObject {
+            put("p_user", user); put("p_reason", reason)
+            if (days != null) put("p_days", days)
+        })
+    }
+
+    suspend fun adminUnban(user: String) {
+        supabase.postgrest.rpc("admin_unban", buildJsonObject { put("p_user", user) })
+    }
+
+    suspend fun adminDeleteContent(type: String, id: String) {
+        if (type == "post") supabase.postgrest.rpc("admin_delete_post", buildJsonObject { put("p_post", id) })
+        else if (type == "comment") supabase.postgrest.rpc("admin_delete_comment", buildJsonObject { put("p_comment", id) })
+    }
+
+    suspend fun adminResolve(report: String, status: String) {
+        supabase.postgrest.rpc("admin_resolve_report", buildJsonObject { put("p_report", report); put("p_status", status) })
     }
 }

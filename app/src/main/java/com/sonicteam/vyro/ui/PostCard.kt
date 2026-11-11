@@ -16,6 +16,11 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,12 +45,20 @@ fun Avatar(url: String?, name: String, size: Int = 34) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PostCard(p: FeedPost, onLike: () -> Unit, onSave: () -> Unit, onComments: () -> Unit, onProfile: () -> Unit = {}) {
+fun PostCard(p: FeedPost, onLike: () -> Unit, onSave: () -> Unit, onComments: () -> Unit, onProfile: () -> Unit = {}, onReport: () -> Unit = {}) {
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.clickable(onClick = onProfile).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Avatar(p.avatarUrl, p.username)
             Spacer(Modifier.width(10.dp))
             Text(p.username, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.weight(1f))
+            var menu by remember { mutableStateOf(false) }
+            Box {
+                IconButton({ menu = true }) { Icon(Icons.Filled.MoreVert, "المزيد") }
+                DropdownMenu(menu, { menu = false }) {
+                    DropdownMenuItem(text = { Text("إبلاغ") }, onClick = { menu = false; onReport() })
+                }
+            }
         }
         if (p.media.isNotEmpty()) {
             val pager = rememberPagerState { p.media.size }
