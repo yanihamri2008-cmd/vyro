@@ -21,7 +21,11 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          grep -E "^e: |What went wrong|Could not resolve|error:" -A4 build.log | head -80
+          grep -E "^e: " build.log | sed 's|file:///home/runner/work/vyro/vyro/||' | head -15 > errors.txt || true
+          if [ ! -s errors.txt ]; then grep -E "What went wrong|Could not resolve|error:" -A4 build.log | head -40 > errors.txt || true; fi
+          { echo "### Build errors"; echo '```'; cat errors.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          while IFS= read -r l; do echo "::error::${l}"; done < errors.txt
+          cat errors.txt
       - uses: actions/upload-artifact@v4
         if: success()
         with:

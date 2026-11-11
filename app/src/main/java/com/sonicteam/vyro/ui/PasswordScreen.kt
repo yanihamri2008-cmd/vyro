@@ -87,6 +87,7 @@ fun ChangePasswordDialog(onDismiss: () -> Unit, onDone: () -> Unit) {
                     n1 != n2 -> err = "كلمتا السر غير متطابقتين"
                     else -> { Security.setPassword(ctx, n1); onDone() }
                 }
+                Unit
             }) { Text("حفظ") }
         },
         dismissButton = { TextButton(onDismiss) { Text("إلغاء") } }

@@ -2,6 +2,7 @@ package com.sonicteam.vyro.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -37,7 +38,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 // Same order as Instagram: Home, Reels, Messages, Search, Profile (mirrors automatically in RTL).
-private enum class Tab(val icon: ImageVector?) {
+private enum class NavTab(val icon: ImageVector?) {
     Home(Icons.Filled.Home),
     Reels(Icons.Outlined.PlayCircleOutline),
     Messages(Icons.AutoMirrored.Filled.Send),
@@ -87,11 +88,9 @@ private fun StoryTray(avatar: String?, name: String, onTap: () -> Unit) {
     }
 }
 
-private fun Modifier.background(c: Color) = this.then(Modifier.background(c, androidx.compose.ui.graphics.RectangleShape))
-
 @Composable
 fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = viewModel()) {
-    var tab by remember { mutableStateOf(Tab.Home) }
+    var tab by remember { mutableStateOf(NavTab.Home) }
     var openProfile by remember { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf(false) }
     var screen by remember { mutableStateOf<Screen>(Screen.None) }
@@ -118,14 +117,14 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
     }
     LaunchedEffect(tab, screen) { refreshUnread() }
     OnNewMessage(Unit) { scope.launch { refreshUnread() } }
-    LaunchedEffect(tab) { if (tab == Tab.Home) feedVm.load() }
+    LaunchedEffect(tab) { if (tab == NavTab.Home) feedVm.load() }
 
-    BackHandler(enabled = editing || screen != Screen.None || openProfile != null || tab != Tab.Home) {
+    BackHandler(enabled = editing || screen != Screen.None || openProfile != null || tab != NavTab.Home) {
         when {
             editing -> editing = false
             screen != Screen.None -> screen = Screen.None
             openProfile != null -> openProfile = null
-            else -> tab = Tab.Home
+            else -> tab = NavTab.Home
         }
     }
 
@@ -136,14 +135,14 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
         snackbarHost = { SnackbarHost(snack) },
         bottomBar = {
             NavigationBar {
-                Tab.values().forEach { t ->
+                NavTab.values().forEach { t ->
                     NavigationBarItem(
                         selected = tab == t && !editing && openProfile == null && screen == Screen.None,
                         onClick = { tab = t; openProfile = null; editing = false; screen = Screen.None },
                         icon = {
                             when (t) {
-                                Tab.Me -> Avatar(myAvatar, myName, 28)
-                                Tab.Messages -> BadgedBox(badge = { if (unread > 0) Badge { Text("$unread") } }) { Icon(t.icon!!, "الرسائل") }
+                                NavTab.Me -> Avatar(myAvatar, myName, 28)
+                                NavTab.Messages -> BadgedBox(badge = { if (unread > 0) Badge { Text("$unread") } }) { Icon(t.icon!!, "الرسائل") }
                                 else -> Icon(t.icon!!, null)
                             }
                         },
@@ -166,7 +165,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                 s is Screen.NewGroup -> NewGroupScreen(
                     onCreated = { id, title -> screen = Screen.Chat(id, title, true) }, onBack = { screen = Screen.None })
                 s is Screen.Admin -> AdminScreen(onBack = { screen = Screen.None })
-                s is Screen.Create -> CreatePostScreen(onDone = { feedVm.load(); profileKey++; screen = Screen.None; tab = Tab.Home })
+                s is Screen.Create -> CreatePostScreen(onDone = { feedVm.load(); profileKey++; screen = Screen.None; tab = NavTab.Home })
                 s is Screen.Alerts -> NotificationsScreen(onBack = { screen = Screen.None })
                 openProfile != null -> ProfileScreen(
                     userId = openProfile!!, refreshKey = profileKey,
@@ -179,17 +178,17 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                         }
                     },
                     onAdmin = adminAction)
-                tab == Tab.Home -> Column(Modifier.fillMaxSize()) {
+                tab == NavTab.Home -> Column(Modifier.fillMaxSize()) {
                     HomeTopBar(onAdd = { screen = Screen.Create }, onAlerts = { screen = Screen.Alerts })
                     FeedScreen(feedVm, onProfile = { openProfile = it }, onNotice = notice,
                         header = { StoryTray(myAvatar, myName) { notice("القصص قريباً") } })
                 }
-                tab == Tab.Reels -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text("الريلز قريباً") }
-                tab == Tab.Messages -> InboxScreen(
+                tab == NavTab.Reels -> Box(Modifier.fillMaxSize(), Alignment.Center) { Text("الريلز قريباً") }
+                tab == NavTab.Messages -> InboxScreen(
                     onOpen = { c -> screen = Screen.Chat(c.id, c.title ?: c.peerUsername ?: "محادثة", c.kind == "group") },
                     onNew = { screen = Screen.NewChat }, onNewGroup = { screen = Screen.NewGroup })
-                tab == Tab.Search -> ExploreScreen(onOpen = { openProfile = it })
-                tab == Tab.Me && me != null -> ProfileScreen(
+                tab == NavTab.Search -> ExploreScreen(onOpen = { openProfile = it })
+                tab == NavTab.Me && me != null -> ProfileScreen(
                     userId = me, refreshKey = profileKey,
                     onEdit = { editing = true }, onSignOut = { authVm.signOut() },
                     onAdmin = adminAction, onSecurity = { showPw = true })
