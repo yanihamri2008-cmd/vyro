@@ -37,6 +37,7 @@ import com.sonicteam.vyro.R
 import com.sonicteam.vyro.data.BanInfo
 import com.sonicteam.vyro.data.Repo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // Same order as Instagram: Home, Reels, Messages, Search, Profile (mirrors automatically in RTL).
@@ -120,6 +121,13 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
     LaunchedEffect(tab, screen) { refreshUnread() }
     OnNewMessage(Unit) { scope.launch { refreshUnread() } }
     LaunchedEffect(tab) { if (tab == NavTab.Home) feedVm.load() }
+    // presence: counts as "online" only while the real app is open
+    LaunchedEffect(Unit) {
+        while (true) {
+            try { Repo.heartbeat() } catch (e: CancellationException) { throw e } catch (e: Exception) { }
+            delay(60_000)
+        }
+    }
 
     BackHandler(enabled = editing || screen != Screen.None || openProfile != null || tab != NavTab.Home) {
         when {

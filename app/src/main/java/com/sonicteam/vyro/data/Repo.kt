@@ -192,4 +192,11 @@ object Repo {
         val me = uid ?: return
         supabase.from("notifications").update({ set("read", true) }) { filter { eq("user_id", me); eq("read", false) } }
     }
+
+    // ---- presence + admin dashboard ----
+    suspend fun heartbeat() { supabase.postgrest.rpc("heartbeat") }
+    suspend fun adminStats(): AdminStats = supabase.postgrest.rpc("admin_stats").decodeList<AdminStats>().first()
+    suspend fun adminDaily(): List<AdminDaily> = supabase.postgrest.rpc("admin_daily").decodeList<AdminDaily>()
+    suspend fun adminOnline(): List<OnlineUser> = supabase.postgrest.rpc("admin_online").decodeList<OnlineUser>()
+    suspend fun adminAudit(): List<AuditRow> = supabase.postgrest.rpc("admin_audit").decodeList<AuditRow>()
 }

@@ -94,7 +94,13 @@ data class AdminReport(
     val reason: String? = null,
     @SerialName("created_at") val createdAt: String
 )
-@Serializable data class AdminUser(val id: String, val username: String, @SerialName("display_name") val displayName: String? = null, val banned: Boolean = false)
+@Serializable data class AdminUser(
+    val id: String, val username: String,
+    @SerialName("display_name") val displayName: String? = null,
+    val banned: Boolean = false,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("last_seen") val lastSeen: String? = null
+)
 
 @Serializable
 data class NotifRow(
@@ -104,3 +110,23 @@ data class NotifRow(
     @SerialName("created_at") val createdAt: String,
     val actor: MiniProfile? = null
 )
+
+@Serializable
+data class AdminStats(
+    @SerialName("users_total") val usersTotal: Long = 0,
+    @SerialName("online_now") val onlineNow: Long = 0,
+    @SerialName("active_24h") val active24h: Long = 0,
+    @SerialName("new_24h") val new24h: Long = 0,
+    @SerialName("new_7d") val new7d: Long = 0,
+    @SerialName("posts_total") val postsTotal: Long = 0,
+    @SerialName("posts_24h") val posts24h: Long = 0,
+    @SerialName("comments_total") val commentsTotal: Long = 0,
+    @SerialName("messages_24h") val messages24h: Long = 0,
+    @SerialName("groups_total") val groupsTotal: Long = 0,
+    @SerialName("banned_now") val bannedNow: Long = 0,
+    @SerialName("open_reports") val openReports: Long = 0,
+    @SerialName("private_accounts") val privateAccounts: Long = 0
+)
+@Serializable data class AdminDaily(val day: String, @SerialName("n_signups") val signups: Long = 0, @SerialName("n_posts") val posts: Long = 0, @SerialName("n_active") val active: Long = 0)
+@Serializable data class OnlineUser(val id: String, val username: String, @SerialName("last_seen") val lastSeen: String? = null)
+@Serializable data class AuditRow(@SerialName("created_at") val createdAt: String, @SerialName("admin_name") val adminName: String? = null, val action: String, @SerialName("target_name") val targetName: String? = null, val note: String? = null)
