@@ -32,6 +32,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sonicteam.vyro.R
 import com.sonicteam.vyro.data.BanInfo
@@ -57,6 +60,7 @@ private sealed interface Screen {
     data object Create : Screen
     data object Alerts : Screen
     data object CreateReel : Screen
+    data object Settings : Screen
     data class Chat(val id: String, val title: String, val group: Boolean) : Screen
 }
 
@@ -124,10 +128,13 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
     OnNewMessage(Unit) { scope.launch { refreshUnread() } }
     LaunchedEffect(tab) { if (tab == NavTab.Home) feedVm.load() }
     // presence: counts as "online" only while the real app is open
-    LaunchedEffect(Unit) {
-        while (true) {
-            try { Repo.heartbeat() } catch (e: CancellationException) { throw e } catch (e: Exception) { }
-            delay(60_000)
+    val owner = LocalLifecycleOwner.current
+    LaunchedEffect(owner) {
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                try { Repo.heartbeat() } catch (e: CancellationException) { throw e } catch (e: Exception) { }
+                delay(60_000)
+            }
         }
     }
 
@@ -179,6 +186,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                 s is Screen.Admin -> AdminScreen(onBack = { screen = Screen.None })
                 s is Screen.Create -> CreatePostScreen(onDone = { feedVm.load(); profileKey++; screen = Screen.None; tab = NavTab.Home })
                 s is Screen.Alerts -> NotificationsScreen(onBack = { screen = Screen.None })
+                s is Screen.Settings -> SettingsScreen(onBack = { screen = Screen.None }, onSignOut = { authVm.signOut() })
                 s is Screen.CreateReel -> CreateReelScreen(onDone = { screen = Screen.None; tab = NavTab.Reels; reelsKey++ })
                 openProfile != null -> ProfileScreen(
                     userId = openProfile!!, refreshKey = profileKey,
@@ -205,7 +213,7 @@ fun MainScaffold(feedVm: FeedViewModel = viewModel(), authVm: AuthViewModel = vi
                 tab == NavTab.Me && me != null -> ProfileScreen(
                     userId = me, refreshKey = profileKey,
                     onEdit = { editing = true }, onSignOut = { authVm.signOut() },
-                    onAdmin = adminAction, onSecurity = { showPw = true })
+                    onAdmin = adminAction, onSecurity = { screen = Screen.Settings })
             }
         }
     }

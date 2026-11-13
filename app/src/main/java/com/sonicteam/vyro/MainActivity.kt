@@ -1,6 +1,7 @@
 package com.sonicteam.vyro
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sonicteam.vyro.data.AppPrefs
 import com.sonicteam.vyro.data.Gate
+import com.sonicteam.vyro.data.Notifier
 import com.sonicteam.vyro.data.supabase
 import com.sonicteam.vyro.ui.AuthScreen
 import com.sonicteam.vyro.ui.CalculatorScreen
@@ -29,22 +32,34 @@ import io.github.jan.supabase.auth.status.SessionStatus
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Gate.blockShots = AppPrefs.blockShots(this)
+        Notifier.apply(this)
         setContent { VyroTheme { Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { Root() } } }
     }
 
-    /** Leaving the app (home, recents, another app) locks it again, as if you had never entered. */
+    override fun onStart() {
+        super.onStart()
+        if (Gate.leftAt > 0L) {
+            val away = SystemClock.elapsedRealtime() - Gate.leftAt
+            Gate.leftAt = 0L
+            if (Gate.unlocked && away > AppPrefs.lockDelaySec(this) * 1000L) Gate.lock()
+        }
+    }
+
+    /** Leaving the app locks it (immediately, or after the delay chosen in Settings). */
     override fun onStop() {
         super.onStop()
-        if (!Gate.pickerOpen && !isChangingConfigurations) Gate.lock()
+        if (Gate.pickerOpen || isChangingConfigurations) return
+        if (AppPrefs.lockDelaySec(this) <= 0) Gate.lock()
+        else if (Gate.unlocked) Gate.leftAt = SystemClock.elapsedRealtime()
     }
 }
 
 @Composable
 fun Root() {
     val act = LocalContext.current as ComponentActivity
-    // Hide the real app from screenshots and the recent-apps preview while it is open.
-    LaunchedEffect(Gate.unlocked) {
-        if (Gate.unlocked) act.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    LaunchedEffect(Gate.unlocked, Gate.blockShots) {
+        if (Gate.unlocked && Gate.blockShots) act.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         else act.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
     when {

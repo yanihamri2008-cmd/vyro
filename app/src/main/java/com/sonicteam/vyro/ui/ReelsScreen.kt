@@ -28,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -57,6 +60,16 @@ private fun ReelPlayer(url: String, paused: Boolean, modifier: Modifier) {
     }
     DisposableEffect(exo) { onDispose { exo.release() } }
     LaunchedEffect(paused, exo) { exo.playWhenReady = !paused }
+    val owner = LocalLifecycleOwner.current
+    val pausedNow by rememberUpdatedState(paused)
+    DisposableEffect(owner, exo) {
+        val obs = LifecycleEventObserver { _, e ->
+            if (e == Lifecycle.Event.ON_STOP) exo.playWhenReady = false
+            else if (e == Lifecycle.Event.ON_START) exo.playWhenReady = !pausedNow
+        }
+        owner.lifecycle.addObserver(obs)
+        onDispose { owner.lifecycle.removeObserver(obs) }
+    }
     AndroidView(
         factory = { c ->
             PlayerView(c).apply {

@@ -79,7 +79,7 @@ fun ProfileScreen(
                         }
                         if (onSecurity != null) {
                             Spacer(Modifier.height(8.dp))
-                            OutlinedButton(onSecurity, Modifier.fillMaxWidth()) { Text("تغيير كلمة السر") }
+                            OutlinedButton(onSecurity, Modifier.fillMaxWidth()) { Text("الإعدادات") }
                         }
                         if (onAdmin != null) {
                             Spacer(Modifier.height(8.dp))
