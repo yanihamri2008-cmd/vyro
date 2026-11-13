@@ -11,11 +11,28 @@ android {
         applicationId = "com.sonicteam.vyro"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
         versionName = "0.1.0"
         // Public client values only. Never put a secret / service_role key here.
         buildConfigField("String", "SUPABASE_URL", "\"https://qtklyikcbvltuwonnlok.supabase.co\"")
         buildConfigField("String", "SUPABASE_KEY", "\"sb_publishable_D3Z7alpv4i2csW0ETf3kXg_61fE3buT\"")
+    }
+    signingConfigs {
+        create("release") {
+            val path = System.getenv("KEYSTORE_PATH")
+            if (!path.isNullOrEmpty()) {
+                storeFile = file(path)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            if (!System.getenv("KEYSTORE_PATH").isNullOrEmpty()) signingConfig = signingConfigs.getByName("release")
+        }
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

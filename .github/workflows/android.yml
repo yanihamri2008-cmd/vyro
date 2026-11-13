@@ -1,4 +1,4 @@
-name: Android debug APK
+name: Android build
 on:
   push:
     branches: [main]
@@ -12,11 +12,31 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.9 }
+      - name: Prepare signing key
+        shell: bash
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "Signed release build"
+          else
+            echo "No signing key found: debug build"
+          fi
       - name: Build
         shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -o pipefail
-          gradle :app:assembleDebug --console=plain 2>&1 | tee build.log
+          if [ -n "$KEYSTORE_PATH" ]; then
+            gradle :app:assembleRelease :app:bundleRelease --console=plain 2>&1 | tee build.log
+          else
+            gradle :app:assembleDebug --console=plain 2>&1 | tee build.log
+          fi
       - name: Show errors
         if: failure()
         shell: bash
@@ -29,5 +49,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: vyro-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: vyro-apk
+          path: app/build/outputs/apk/**/*.apk
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: vyro-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: ignore
