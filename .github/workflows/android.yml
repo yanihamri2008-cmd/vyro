@@ -24,6 +24,35 @@ jobs:
           else
             echo "No signing key found: debug build"
           fi
+      - name: Verify signing key
+        if: env.KEYSTORE_PATH != ''
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          fail() { echo "::error::RESULT: $1"; echo "RESULT: $1"; exit 1; }
+          [ -z "$KEYSTORE_PASSWORD" ] && fail "KEYSTORE_PASSWORD secret is missing or empty"
+          [ -z "$KEY_ALIAS" ] && fail "KEY_ALIAS secret is missing or empty"
+          [ -z "$KEY_PASSWORD" ] && fail "KEY_PASSWORD secret is missing or empty"
+          echo "keystore file size: $(wc -c < "$KEYSTORE_PATH") bytes"
+          if ! keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD" > /tmp/l.txt 2>&1; then
+            head -3 /tmp/l.txt
+            fail "KEYSTORE_B64 is corrupt/incomplete OR KEYSTORE_PASSWORD is wrong"
+          fi
+          echo "RESULT: store password OK"
+          grep -E "Keystore type|Your keystore contains" /tmp/l.txt || true
+          if ! keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /tmp/a.txt 2>&1; then
+            fail "KEY_ALIAS does not match the alias inside the keystore (should be: vyro)"
+          fi
+          echo "RESULT: alias OK"
+          if ! keytool -importkeystore -srckeystore "$KEYSTORE_PATH" -destkeystore /tmp/t.p12 -deststoretype PKCS12 \
+               -srcalias "$KEY_ALIAS" -srcstorepass "$KEYSTORE_PASSWORD" -srckeypass "$KEY_PASSWORD" \
+               -deststorepass tmp12345 -noprompt > /tmp/k.txt 2>&1; then
+            fail "KEY_PASSWORD is wrong (it must equal the key password you typed in keytool)"
+          fi
+          echo "RESULT: key password OK"
       - name: Build
         shell: bash
         env:
